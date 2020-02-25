@@ -5,7 +5,7 @@ SingleCellFusion is a computational tool to integrate single-cell transcriptome 
 For more information and to cite this work:
 - [mukamel-lab/SingleCellFusion_Loompy](https://github.com/mukamel-lab/SingleCellFusion_Loompy)--the github repository of an implementation of SingleCellFusion based on [Loompy](http://loompy.org/). (This repository--now called SingleCellFusion_Loompy--is previously called SingleCellFusion.)
 - [Luo, C. et al. Single nucleus multi-omics links human cortical cell regulatory genome diversity to disease risk variants. bioRxiv 2019.12.11.873398 (2019) doi:10.1101/2019.12.11.873398](https://www.biorxiv.org/content/10.1101/2019.12.11.873398v1)
-
+- A [brief description](docs/scf_description.rst) of how SingleCellFusion works
 
 Code contributors: [Fangming Xie](mailto:f7xie@ucsd.edu), Wayne I. Doyle, [Ethan Armand](mailto:ejarmand@ucsd.edu)
 
