@@ -3,7 +3,7 @@
 SingleCellFusion is a computational tool to integrate single-cell transcriptome and epigenome datasets. Code in this repository is used in [Luo et al 2019 BioRxiv](https://www.biorxiv.org/content/10.1101/2019.12.11.873398v1) and in [manuscript in preparation].
 
 For more information and to cite this work:
-- [mukamel-lab/SingleCellFusion_Loompy](https://github.com/mukamel-lab/SingleCellFusion_Loompy)--the github repository of an implementation of SingleCellFusion based on Loompy led by Dr. Wayne I. Doyle. This version is called SingleCellFusion previously.
+- [mukamel-lab/SingleCellFusion_Loompy](https://github.com/mukamel-lab/SingleCellFusion_Loompy)--the github repository of an implementation of SingleCellFusion based on Loompy led by Dr. Wayne I. Doyle. (This repository is previously called SingleCellFusion.)
 - [Luo, C. et al. Single nucleus multi-omics links human cortical cell regulatory genome diversity to disease risk variants. bioRxiv 2019.12.11.873398 (2019) doi:10.1101/2019.12.11.873398](https://www.biorxiv.org/content/10.1101/2019.12.11.873398v1)
 
 
