@@ -14,8 +14,8 @@ Contact: [Eran Mukamel](mailto:emukamel@ucsd.edu)
 ## Installation
 Step 1: Clone this repo.
 ```bash
-git clone https://github.com/FangmingXie/SingleCellFusion_dev.git
-cd SingleCellFusion_dev
+git clone https://github.com/mukamel-lab/SingleCellFusion.git
+cd SingleCellFusion
 ```
 
 Step 2: Set up a conda environment and install dependent packages. (Skip this step if not needed.)
