@@ -87,6 +87,10 @@ pcX_all, cells_all = SCF_utils.core_scf_routine(mods_selected, features_selected
                                                 npc,
                                                 output_pcX_all, output_cells_all,
                                                 output_imputed_data_format,
+                                                ka_smooth=ka_smooth,
+                                                save_knn=save_knn,
+                                                output_knn_within=output_knn_within,
+                                                output_knn_across=output_knn_across,
                                                 )
 logging.info('Done integration into a common PC space')
 

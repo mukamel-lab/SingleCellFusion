@@ -32,13 +32,16 @@ def sparse_adj_to_mat(adjs, row_size, col_size, dists=''):
     return knn_dist_mat
 
 # smooth-within modality
-def smooth_in_modality(counts_matrix, norm_counts_matrix, k, ka, npc=100, sigma=1.0, p=0.1, drop_npc=0):
+def smooth_in_modality(counts_matrix, norm_counts_matrix, k, ka, npc=100, sigma=1.0, p=0.1, drop_npc=0, 
+    output_filename="",
+    ):
     """Smooth a data matrix
     
     Arguments:
         - counts_matrix (pandas dataframe, feature by cell)
         - norm_counts_matrix (pandas dataframe, feature by cell) log10(CPM+1)
         - k (number of nearest neighbors)
+        - ka normalized by the ka'th neighbor (including self)
     Return:
         - smoothed cells_matrix (pandas dataframe)
         - markov affinity matrix
@@ -68,7 +71,8 @@ def smooth_in_modality(counts_matrix, norm_counts_matrix, k, ka, npc=100, sigma=
     inds = inds[:, 1:]
 
     # normalize by ka's distance 
-    dists = (dists/(dists[:, ka].reshape(-1, 1)))
+    # (including itself; needs to -2; one to switch to 0-based index, one account for the remove itself step) 
+    dists = (dists/(dists[:, ka-2].reshape(-1, 1)))
 
     # gaussian kernel
     adjs = np.exp(-((dists**2)/(sigma**2))) 
@@ -93,10 +97,14 @@ def smooth_in_modality(counts_matrix, norm_counts_matrix, k, ka, npc=100, sigma=
     # smooth fast (future?)
     counts_matrix_smoothed = pd.DataFrame((A.dot(counts_matrix.T)).T, 
                                          columns=counts_matrix.columns, index=counts_matrix.index)
+    if output_filename:
+        # save A (name, axis?)
+        sparse.save_npz(output_filename, A)
     return counts_matrix_smoothed, A
 
 # impute across modality
-def get_constrained_knn(mat_norm_j, mat_norm_i, knn, k_saturate, knn_speed_factor=10, metric='dot', verbose=False):
+def get_constrained_knn(mat_norm_j, mat_norm_i, knn, k_saturate, knn_speed_factor=10, metric='dot', verbose=False, 
+    ):
     """Get constrained knn
     j <- i
     Look for kNN in i for each cell in j, cells in i are constrained to k_saturated
@@ -105,7 +113,7 @@ def get_constrained_knn(mat_norm_j, mat_norm_i, knn, k_saturate, knn_speed_facto
     """
     ti = time.time()
     assert mat_norm_i.shape[1] == mat_norm_j.shape[1]
-    knn = int(knn)
+    knn = min(int(knn), len(mat_norm_i)) # min added 08/11/2020
     knn_speed_factor = int(knn_speed_factor)
     
     cells_i = np.arange(len(mat_norm_i))
@@ -123,7 +131,7 @@ def get_constrained_knn(mat_norm_j, mat_norm_i, knn, k_saturate, knn_speed_facto
     
     while rejected_cells.size != 0:
         if verbose:
-            print(len(rejected_cells), len(unsaturated_cells), time.time()-ti)
+            logging.info("**{}, {}, {}".format(len(rejected_cells), len(unsaturated_cells), time.time()-ti))
         
         np.random.shuffle(rejected_cells) # random order
         # do something to rejected cells and unsaturated cells
@@ -162,9 +170,9 @@ def get_constrained_knn(mat_norm_j, mat_norm_i, knn, k_saturate, knn_speed_facto
                 
     accepted_knn_ji = pd.DataFrame(np.vstack(accepted_knn_ji), index=accepted_cells)
     accepted_knn_ji = accepted_knn_ji.sort_index().values
+
     
     return accepted_knn_ji
-
 # 
 def impute_1pair_cca(mod_i, mod_j, 
                      smoothed_features_i, smoothed_features_j,
@@ -308,7 +316,6 @@ def impute_1pair(mod_i, mod_j,
     else:
         return mat_ij
 
-
 def core_scf_routine(mods_selected, features_selected, settings, 
                     metas, gxc_hvftrs, 
                     ps, drop_npcs,
@@ -316,6 +323,10 @@ def core_scf_routine(mods_selected, features_selected, settings,
                     npc,
                     output_pcX_all, output_cells_all,
                     output_imputed_data_format,
+                    ka_smooth=5,
+                    save_knn=False,
+                    output_knn_within="",
+                    output_knn_across="",
                     ):
     """smooth within modality, impute across modalities, and construct a joint PC matrix
     """
@@ -332,16 +343,29 @@ def core_scf_routine(mods_selected, features_selected, settings,
                               index=gxc_hvftrs[mod].gene, 
                               columns=gxc_hvftrs[mod].cell, 
                               ) 
+        if len(metas[mod]) < 2:
+            raise ValueError("Dataset too small (contains <2 cells)")
+
         npc = min(len(metas[mod]), npc)
-        k_smooth = min(len(metas[mod]), 30)
-        ka = 5
-        if k_smooth >= 2*ka:
-            mat_smoothed, mat_knn = smooth_in_modality(_df, _df, k=k_smooth, ka=ka, npc=npc, 
-                                                         p=ps[settings[mod].mod_category], 
-                                                         drop_npc=drop_npcs[settings[mod].mod_category])
-            smoothed_features[mod] = mat_smoothed
+        # added 08/03/2020
+        ka = min(len(metas[mod]), ka_smooth) 
+        k_smooth = min(len(metas[mod]), 3*ka)
+
+        if save_knn: # added 07/27/2020
+            output_knn_mat = output_knn_within.format(mod)
         else:
-            smoothed_features[mod] = _df
+            output_knn_mat = ""
+
+        # if k_smooth >= 2*ka:
+        mat_smoothed, mat_knn = smooth_in_modality(_df, _df, k=k_smooth, ka=ka, npc=npc, 
+                                                     p=ps[settings[mod].mod_category], 
+                                                     drop_npc=drop_npcs[settings[mod].mod_category], 
+                                                     output_filename=output_knn_mat,
+                                                     )
+        smoothed_features[mod] = mat_smoothed
+        # else:
+        #     smoothed_features[mod] = _df
+
         logging.info("{}: {}".format(mod, time.time()-ti))
     # delete
     del gxc_hvftrs[mod]
@@ -360,6 +384,12 @@ def core_scf_routine(mods_selected, features_selected, settings,
                 smoothed_yy = smoothed_features[mod_y].T # gene by cell !!! VERY IMPORTANT
                 X.append(smoothed_yy)
             else:
+                if save_knn: # added 07/27/2020
+                    output_knn_mat_ij = output_knn_across.format(mod_x, mod_y)
+                    output_knn_mat_ji = output_knn_across.format(mod_y, mod_x)
+                else:
+                    output_knn_mat_ij = "" 
+                    output_knn_mat_ji = "" 
                 # impute x cells y space
                 smoothed_features_x = smoothed_features[mod_x]
                 smoothed_features_y = smoothed_features[mod_y]
@@ -370,6 +400,8 @@ def core_scf_routine(mods_selected, features_selected, settings,
                                               knn=knn,
                                               relaxation=relaxation,
                                               impute_j=False,
+                                              output_knn_mat_ij=output_knn_mat_ij,
+                                              output_knn_mat_ji=output_knn_mat_ji,
                                               )
                 elif cross_mod_distance_measure == 'cca':
                     imputed_xy = impute_1pair_cca(mod_x, mod_y, 
@@ -379,6 +411,8 @@ def core_scf_routine(mods_selected, features_selected, settings,
                                                  relaxation=relaxation,
                                                  n_cca=n_cca,
                                                  impute_j=False,
+                                                 output_knn_mat_ij=output_knn_mat_ij,
+                                                 output_knn_mat_ji=output_knn_mat_ji,
                                                 )
                 else:
                     raise ValueError("Choose from correlation and cca")
@@ -402,8 +436,6 @@ def core_scf_routine(mods_selected, features_selected, settings,
     logging.info("Saved output to: {}".format(output_pcX_all))
     logging.info("Saved output to: {}".format(output_cells_all))
     return pcX_all, cells_all
-    
-
 
 def clustering_umap_routine(pcX_all, cells_all, mods_selected, metas, 
                             resolutions, k, 
