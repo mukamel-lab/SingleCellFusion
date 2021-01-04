@@ -4,9 +4,17 @@
 import sys
 import os
 
+# EAM: Figure out the data path on Google workspace:
+# TEMPORARY HACK
+sample = 'example_l5pt'
+
+import pathlib 
+currdir=str(pathlib.Path().absolute())
+DATA_DIR = currdir+'/SingleCellFusion/'+sample+'/datasets'
+
 # # Configs  
 name = 'test_scf_mouse_mop'
-outdir = './results'
+outdir = currdir+'/SingleCellFusion/'+sample+'/results'
 output_pcX_all = outdir + '/pcX_all_{}.npy'.format(name)
 output_cells_all = outdir + '/cells_all_{}.npy'.format(name)
 output_imputed_data_format = outdir + '/imputed_data_{}_{{}}.npy'.format(name)
@@ -14,8 +22,6 @@ output_clst_and_umap = outdir + '/intg_summary_{}.tsv'.format(name)
 output_cluster_centroids = outdir + '/centroids_{}.pkl'.format(name)
 output_figures = outdir + '/{}_{{}}.{{}}'.format(name)
 
-
-DATA_DIR = './datasets'
 # fixed dataset configs
 sys.path.insert(0, DATA_DIR)
 from __init__datasets import *
