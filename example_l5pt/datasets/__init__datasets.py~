@@ -20,13 +20,11 @@ Mod_info = collections.namedtuple('Mod_info', [
     'cell_col', # cell id
     'cluster_col', # cluster label 
     'annot_col', # cluster annotation 
-    'global_mean', # for DNA methylation, this is global mean mCH level. Leave blank for other modalities
+    'global_mean', # leave it blank if it's not DNA methylation data
     'global_mean_mcg', # for mcg only; leave it blank if it's not DNA methylation data
     'color',
     'species',
-],
-defaults=('ID','NAME','rna','tpm',1,'','','','','','','black','mouse')
-)
+])
 
 # settngs
 settings_mc = Mod_info(

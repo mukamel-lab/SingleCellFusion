@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""SingleCellFusion main rontine"""
+"""SingleCellFusion main routine"""
 
 from __init__ import *
 
@@ -20,11 +20,16 @@ def create_parser():
     """
     parser = argparse.ArgumentParser()
     parser.add_argument("-c", "--config_py", help="Configuration file", required=True)
+    parser.add_argument("-s", "--sample", help="Sample name", required=True)
     return parser
 parser = create_parser()
 args = parser.parse_args()
 
 config_dirc, config_py = os.path.split(args.config_py)
+sample = args.sample
+
+print(sample, config_py)
+
 logging.info("{} {}".format(config_dirc, config_py))
 if config_py.endswith('.py'):
     config_py = config_py[:-3]
