@@ -25,7 +25,7 @@ Mod_info = collections.namedtuple('Mod_info', [
     'color',
     'species',
 ],
-defaults=('ID','NAME','rna','tpm',1,'','','','','','','black','mouse')
+defaults=('ID','NAME','rna','tpm',1,'','','','','','black','mouse')
 )
 
 # settngs
