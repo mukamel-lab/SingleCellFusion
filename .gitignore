@@ -3,6 +3,8 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+example_l5pt/results
+
 # C extensions
 *.so
 
