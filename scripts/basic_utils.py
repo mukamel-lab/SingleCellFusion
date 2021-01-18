@@ -6,6 +6,41 @@ import subprocess as sp
 import os
 from scipy import sparse
 
+def h5ad_to_scf_rna_format(h5ad_mat):
+    """
+    input:
+        - anndata
+    output:
+        - meta (cell metadata)
+        - gc_mat
+
+    """
+    meta = h5ad_mat.obs
+    gc_mat = GC_matrix(h5ad_mat.var.index.values,
+                       h5ad_mat.obs.index.values,
+                       h5ad_mat.X.T,
+                      )
+
+    return meta, gc_mat
+
+def h5ad_to_scf_mc_format(h5ad_mat):
+    """
+    input:
+        - anndata
+    output:
+        - meta (cell metadata)
+        - gc_mat
+    """
+
+    meta = h5ad_mat.obs
+    mat = pd.DataFrame(h5ad_mat.X.T,
+                       index=h5ad_mat.var.index.values,
+                       columns=h5ad_mat.obs.index.values,
+                      )
+
+
+    return meta, mat
+
 def diag_matrix(X, rows=np.array([]), cols=np.array([]), threshold=None):
     """Diagonalize a matrix as much as possible
     """
