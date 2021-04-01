@@ -25,6 +25,7 @@ def create_parser():
 parser = create_parser()
 args = parser.parse_args()
 
+# replace the config.py with argparse command-line api
 config_dirc, config_py = os.path.split(args.config_py)
 
 logging.info("{} {}".format(config_dirc, config_py))
@@ -38,61 +39,22 @@ exec("from {} import *".format(config_py))
 if not os.path.isdir(outdir):
     os.makedirs(outdir)
 # end of configurations
+# 
 
 
-### ---- fixed after ----
 # ## Read in data 
 logging.info('* Begin integration')
-
-
-### read in data (old)
-# metas = collections.OrderedDict()
-# for mod in mods_selected:
-#     metas[mod] = pd.read_csv(meta_f.format(mod), sep="\t").reset_index().set_index(settings[mod].cell_col)
-#     logging.info("Metadata {} {}".format(mod, metas[mod].shape))
-# 
-# gxc_hvftrs = collections.OrderedDict()
-# for mod in mods_selected:
-#     if settings[mod].mod_category == 'mc':
-#         f_mat = hvftrs_f.format(mod, 'tsv')
-#         gxc_hvftrs[mod] = pd.read_csv(f_mat, sep='\t', header=0, index_col=0) 
-#         logging.info("Feature matrix {} {}".format(mod, gxc_hvftrs[mod].shape))
-#         assert np.all(gxc_hvftrs[mod].columns.values == metas[mod].index.values) # make sure cell name is in the sanme order as metas (important if save knn mat)
-#         continue
-#         
-#     f_mat = hvftrs_f.format(mod, 'npz')
-#     f_gene = hvftrs_gene.format(mod)
-#     f_cell = hvftrs_cell.format(mod)
-#     _gxc_tmp = basic_utils.load_gc_matrix(f_gene, f_cell, f_mat)
-#     _gene = _gxc_tmp.gene
-#     _cell = _gxc_tmp.cell
-#     _mat = _gxc_tmp.data
-# 
-#     ## remove duplicated genes (for now)
-#     u, c = np.unique(_gene, return_counts=True)
-#     dup = u[c > 1]
-#     uniq_bool = np.array([False if gene in dup else True for gene in _gene])
-#     _gene_selected = _gene[uniq_bool]
-#     _gene_selected_idx = np.arange(len(_gene))[uniq_bool]
-#     _gene = _gene_selected
-#     _mat = _mat.tocsr()[_gene_selected_idx, :]
-#     ## remove duplicated genes complete
-#     
-#     gxc_hvftrs[mod] = GC_matrix(_gene, _cell, _mat)
-#     assert np.all(gxc_hvftrs[mod].cell == metas[mod].index.values) # make sure cell name is in the sanme order as metas (important if save knn mat)
-#     logging.info("Feature matrix {} {}".format(mod, gxc_hvftrs[mod].data.shape))
-# logging.info('Done reading data')
-
 
 ### read in data (h5ad)
 metas = collections.OrderedDict()
 gxc_hvftrs = collections.OrderedDict()
-for mod in mods:
+for mod in mods_selected:
     print(mod)
     if settings[mod].mod_category == 'mc':
         # path
-        _file = os.path.join(DATA_DIR, '{}.h5ad'.format(mod))
+        _file = data_f.format(mod)
         # read 
+        print(_file)
         h5ad_mat = anndata.read_h5ad(_file) 
         # convert
         meta, mat = basic_utils.h5ad_to_scf_mc_format(h5ad_mat)
@@ -107,8 +69,9 @@ for mod in mods:
         continue
         
     # path 
-    _file = os.path.join(DATA_DIR, '{}.h5ad'.format(mod))
+    _file = data_f.format(mod)
     # read 
+    print(_file)
     h5ad_mat = anndata.read_h5ad(_file) 
     # convert
     meta, gc_mat = basic_utils.h5ad_to_scf_rna_format(h5ad_mat)
