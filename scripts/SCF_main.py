@@ -7,39 +7,206 @@ from scipy import sparse
 import collections
 import itertools
 import sys
+import os
 import pickle
 import argparse
 import anndata
+
+import pandas # To import dataset_metadata.csv
 
 import basic_utils
 import SCF_utils
 
 log = basic_utils.create_logger()
 
+
+# TODO:
+# -- Clean up command line argument descriptions
+# -- Figure out where to put default values
+# -- Fix __init__dataset.py rept
+# -- Proper error messages (replace assert() with helpful messages)
+# -- Simplify API to take care of redundant information
+
 def create_parser():
     """
     """
-    parser = argparse.ArgumentParser()
-    parser.add_argument("-c", "--config_py", help="Configuration file (full path)", required=True)
+    parser = argparse.ArgumentParser(prog="SingleCellFusion",
+                                     description="SCF is a computational tool to \
+                                                  integrate single-cell transcriptome \
+                                                  and epigenome datasets")
+    
+    ## ARGUMENTS DIRECTLY FED INTO SingleCellFusion CLI 
+
+    # Name of settings
+
+    parser.add_argument("-n", "--name", metavar="NAME", type=str,
+                         help="Name of current configuration",
+                         default="test_scf_biccn2")
+
+    # Input/Output Dataset Settings
+
+    parser.add_argument("-d", "--dataset", metavar="DATASET_DIR", type=str,
+                        help="Directory containing input gene x cell tables as h5ad",
+                        default="./datasets",
+                        required=False)
+
+    parser.add_argument("-m", "--mods", metavar="MODALITY", type=str,
+                        help="Modalities inside the data directory to be integrated",
+                        nargs="+",
+                        required=True)
+    
+    parser.add_argument("-f", "--features", metavar="FEATURE", type=str,
+                        help="Modalities to impute into -- Features from this ",
+                        nargs="+",
+                        required=True)
+    
+    parser.add_argument("-o", "--output", metavar="OUT_DIR", type=str,
+                        help="Directory to store output of SingleCellFusion",
+                        default="./results")
+
+    # Measures Within Each Modality
+
+    parser.add_argument("--num_pcs", metavar="PCs", type=int,
+                        help="Number of Principal Components to use for main function",
+                        default=50)
+
+    parser.add_argument("--ps", metavar="PS",
+                        help="Specified list of ____ for [mc, rna, atac] \
+                              data respectively",
+                        default=[0.9, 0.7, 0.1])
+
+    # Measures Across Modalities
+
+    parser.add_argument("--cross_mod_distance", metavar="DISTANCE_METRIC", type=str,
+                        help="Distance for comparisons across modalities",
+                        default="correlation") #correlation or cca
+
+    parser.add_argument("--nearest_neighbors", metavar="kNN", type=int,
+                        help="Number of nearest neighbors used to impute data",
+                        default=20)
+
+    parser.add_argument("--relaxation", metavar="RELAXATION", type=int,
+                        help="TODO",
+                        default=3)
+
+    parser.add_argument("--n_cca", metavar="NUMBER_CCA", type=int,
+                        help="TODO",
+                        default=0)
+
+    # Number of PCs
+
+    parser.add_argument("--n_dropped_pcs", metavar="NUM_DROPPED_PCS", type=list,
+                        help="Specified list of Principal Components to drop for \
+                              [mc, rna, atac] respectively",
+                        default=[0, 0, 0])
+   
+    # Arguments for Clustering
+
+    parser.add_argument("-k", "--k_clusters", metavar="K_CLUSTERS", type=int,
+                        help="TODO: Number of Clusters for late clustering stage of SingleCellFusion",
+                        default=30)
+   
+    parser.add_argument("--resolutions", metavar="RESOLUTIONS", type=list,
+                        help="TODO: Resolutions to be used for Leiden Clustering Algorithm. \
+                              Should be given as list of resolutions, to be iteiated through and used \
+                              from left to right.",
+                        default=[0.1, 0.2, 0.4, 0.8])
+
+    # Arguments for UMAP
+
+    # TODO: get documentation for --n_neighbors & --min_dist respectively
+
+    parser.add_argument("-u", "--umap_neighbors", metavar="UMAP_NEIGHBORS", type=int,
+                        help="TODO: Number of Neighbors used for UMAP stage of SingleCellFusion",
+			default=60)
+   
+    parser.add_argument("--min_distance", metavar="MIN_UMAP_DISTANCE", type=float,
+                        help="TODO: Minimum Distance ___ to be used for UMAP stage of SingleCellFusion",
+                        default=0.5)
+
     return parser
+
 parser = create_parser()
 args = parser.parse_args()
 
-# replace the config.py with argparse command-line api
-config_dirc, config_py = os.path.split(args.config_py)
+logging.info('* Parsing Command Line Arguments')
 
-logging.info("{} {}".format(config_dirc, config_py))
-if config_py.endswith('.py'):
-    config_py = config_py[:-3]
-if os.path.isdir(config_dirc):
-    logging.info('Adding {} to python path'.format(config_dirc))
-    sys.path.insert(0, config_dirc)
-exec("from {} import *".format(config_py))
+# Get input and output directories
+DATA_DIR = args.dataset
+outdir = args.output
 
 if not os.path.isdir(outdir):
     os.makedirs(outdir)
-# end of configurations
-# 
+
+# output file names
+
+name = args.name
+
+output_pcX_all = outdir + '/pcX_all_{}.npy'.format(name)
+output_cells_all = outdir + '/cells_all_{}.npy'.format(name)
+output_imputed_data_format = outdir + '/imputed_data_{}_{{}}.npy'.format(name)
+output_clst_and_umap = outdir + '/intg_summary_{}.tsv'.format(name)
+output_cluster_centroids = outdir + '/centroids_{}.pkl'.format(name)
+output_figures = outdir + '/{}_{{}}.{{}}'.format(name)
+
+# Get dataset configuration
+
+settings = collections.OrderedDict()
+
+# Load in dataset metadata
+dataset_metadata_filename = os.path.join(DATA_DIR, "dataset_metadata.csv")
+assert(os.path.isfile(dataset_metadata_filename))    
+metadata = pd.read_csv(dataset_metadata_filename)
+
+# Load metadata file into settings OrderedDict
+Mod_info = collections.namedtuple('Mod_info', metadata.columns)
+for _, row in metadata.iterrows():
+    sample_name = row['mod']
+    settings[sample_name] = Mod_info(*row)
+    
+
+# Select modalities and features
+mods_selected = args.mods
+features_selected = args.features
+
+for features_modality in features_selected:
+    assert (features_modality in mods_selected)
+
+
+data_f = os.path.join(DATA_DIR, "{0}.h5ad")
+
+# Within modality
+
+assert(len(args.ps) == 3)
+assert(all(isinstance(ps, float) for ps in args.ps))
+assert(len(args.n_dropped_pcs) == 3)
+assert(all(isinstance(n_dropped_pcs, int) for n_dropped_pcs in args.n_dropped_pcs))
+
+ps = {'mc': args.ps[0],
+      'rna': args.ps[1],
+      'atac': args.ps[2],
+     }
+drop_npcs = {
+      'mc': args.n_dropped_pcs[0],
+      'rna': args.n_dropped_pcs[1],
+      'atac': args.n_dropped_pcs[2],
+     }
+
+# across modality
+cross_mod_distance_measure = args.cross_mod_distance
+knn = args.nearest_neighbors
+relaxation = args.relaxation
+n_cca = args.n_cca
+
+# PCA
+npc = args.num_pcs
+
+# clustering
+k = args.k_clusters
+resolutions = args.resolutions
+# umap
+umap_neighbors = args.umap_neighbors
+min_dist = args.min_distance
 
 
 # ## Read in data 

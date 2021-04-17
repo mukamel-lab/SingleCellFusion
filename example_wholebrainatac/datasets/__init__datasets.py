@@ -102,7 +102,7 @@ settings_snatac = Mod_info(
     '',
     '',
     '',
-    'C1',
+    'C2',
     'mouse',
 )
 

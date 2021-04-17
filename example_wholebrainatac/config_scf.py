@@ -35,12 +35,12 @@ data_f = os.path.join(DATA_DIR, "{0}.h5ad")
 
 mods_selected = [
     #'snmcseq_gene',
-    'smarter_cells',
+    # 'smarter_cells',
     # 'smarter_nuclei',
-    #'10x_cells_v2',
+    '10x_cells_v2',
     'snatac',
     ]
-features_selected = ['smarter_cells']
+features_selected = ['10x_cells_v2']
 # check features
 for features_modality in features_selected:
     assert (features_modality in mods_selected)

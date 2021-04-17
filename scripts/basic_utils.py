@@ -5,8 +5,44 @@ from __init__ import *
 import subprocess as sp
 import os
 from scipy import sparse
+import anndata
 
-def h5ad_to_scf_rna_format(h5ad_mat):
+
+def scf_rna_format_to_h5ad(meta, gc_mat):
+    """
+    input:
+        - meta (cell metadata)
+        - gc_mat
+    
+    output:
+        - anndata
+    """
+    X = gc_mat.data.T # cell by gene [scipy sparse matrix]
+    obs = meta # cell annotation [pandas dataframe]
+    var = pd.DataFrame(index=gc_mat.gene) # gene annotation [pandas dataframe]
+    
+    h5ad_mat = anndata.AnnData(X, obs, var,)
+    
+    return h5ad_mat
+
+def scf_mc_format_to_h5ad(meta, mat):
+    """
+    input:
+        - meta (cell metadata)
+        - gc_mat
+    
+    output:
+        - anndata
+    """
+    X = mat.T.values # cell by gene [numpy array]
+    obs = meta # cell annotation [pandas dataframe]
+    var = pd.DataFrame(index=mat.index) # gene annotation [pandas dataframe]
+    
+    h5ad_mat = anndata.AnnData(X, obs, var,)
+    
+    return h5ad_mat
+
+def h5ad_to_scf_rna_format(h5ad_mat, gid_col='', cid_col=''):
     """
     input:
         - anndata
@@ -16,14 +52,21 @@ def h5ad_to_scf_rna_format(h5ad_mat):
 
     """
     meta = h5ad_mat.obs
-    gc_mat = GC_matrix(h5ad_mat.var.index.values,
-                       h5ad_mat.obs.index.values,
+    if gid_col:
+        genes = h5ad_mat.var[gid_col].values
+    else:
+        genes = h5ad_mat.var.index.values
+    if cid_col:
+        cells = h5ad_mat.obs[cid_col].values
+    else:
+        cells = h5ad_mat.obs.index.values 
+    gc_mat = GC_matrix(genes,
+                       cells,
                        h5ad_mat.X.T,
                       )
-
     return meta, gc_mat
 
-def h5ad_to_scf_mc_format(h5ad_mat):
+def h5ad_to_scf_mc_format(h5ad_mat, gid_col='', cid_col=''):
     """
     input:
         - anndata
@@ -33,12 +76,18 @@ def h5ad_to_scf_mc_format(h5ad_mat):
     """
 
     meta = h5ad_mat.obs
+    if gid_col:
+        genes = h5ad_mat.var[gid_col].values
+    else:
+        genes = h5ad_mat.var.index.values
+    if cid_col:
+        cells = h5ad_mat.obs[cid_col].values
+    else:
+        cells = h5ad_mat.obs.index.values 
     mat = pd.DataFrame(h5ad_mat.X.T,
-                       index=h5ad_mat.var.index.values,
-                       columns=h5ad_mat.obs.index.values,
+                       index=genes,
+                       columns=cells,
                       )
-
-
     return meta, mat
 
 def diag_matrix(X, rows=np.array([]), cols=np.array([]), threshold=None):
