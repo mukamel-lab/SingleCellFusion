@@ -136,6 +136,7 @@ def create_parser():
             relaaxation=infinity approaches traditional kNN",
     )
 
+    # bury some arguments
     # parser.add_argument(
     #     "--n_cca", 
     #     metavar="NUMBER_CCA", 
