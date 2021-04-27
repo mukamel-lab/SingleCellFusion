@@ -7,6 +7,8 @@ __pycache__/
 *$py.class
 
 example_l5pt/results
+example_wholebrainatac/results
+example_wholebrainatac/datasets
 
 # C extensions
 *.so
