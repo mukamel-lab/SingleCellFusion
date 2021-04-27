@@ -1,14 +1,18 @@
 # old
 scripts/old.py
 
+# results
+example_l5pt/results
+example_wholebrainatac/results
+
+# datasets
+example_wholebrainatac/datasets
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
 *$py.class
 
-example_l5pt/results
-example_wholebrainatac/results
-example_wholebrainatac/datasets
 
 # C extensions
 *.so

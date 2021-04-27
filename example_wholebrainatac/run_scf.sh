@@ -1,3 +1,8 @@
 #!/bin/bash
 
-../scripts/SCF_main.py -d ./datasets -m "10x_cells_v2" "snatac" -f "10x_cells_v2" -o ./results 
+../scripts/SCF_main.py \
+    -i "./datasets/10x_cells_v2.h5ad" "./datasets/snatac.h5ad" \
+    -ic "rna" "atac" \
+    -f "./datasets/10x_cells_v2.h5ad" \
+    -op "test_april27" \
+    -o "./results"
