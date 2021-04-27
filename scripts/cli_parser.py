@@ -25,7 +25,7 @@ def create_parser():
         metavar="NAME", 
         type=str,
         default="test_run",
-        help="Name of current configuration",
+        help="Name of current configuration (prefix used in the output)",
     )
 
     # Input/Output Dataset Settings
@@ -36,17 +36,36 @@ def create_parser():
         type=str,
         default="./datasets",
         required=False,
-        help="Directory containing input gene x cell tables as h5ad",
+        help="Directory containing input gene x cell tables in h5ad format",
     )
 
     parser.add_argument(
-        "-m", "--mods", 
+        "-m", "--files", 
         metavar="MODALITY", 
         type=str,
         nargs="+",
         required=True,
         help="Modalities inside the data directory to be integrated, \
-            entered as a space seperated list of filenames.",
+            entered as a space seperated list of filenames. \
+                '10x_cells_v2' \
+                ",
+    )
+
+    # name of the cell col
+    # name of the cluster col [option]
+    # [option]
+    # [option]
+
+    parser.add_argument(
+        "-m", "--", 
+        metavar="MODALITY", 
+        type=str,
+        nargs="+",
+        required=True,
+        help="Modalities inside the data directory to be integrated, \
+            entered as a space seperated list of filenames. \
+                '10x_cells_v2' \
+                ",
     )
     
     parser.add_argument(
@@ -77,15 +96,19 @@ def create_parser():
         help="Number of Principal Components to use for main function",
     )
 
+    # 
     parser.add_argument(
-        "--ps", 
+        "--smoothing_parameter", 
         metavar="PS",
         default=[0.9, 0.7, 0.1],
-        help="TODO: Specified list of PS for [mc, rna, atac] \
+        help="a value from 0 ~ 1, controlling the relative contribution of the cell itself vs. its neighbors \
+              TODO: Specified list of PS for [mc, rna, atac] \
               data respectively",
     )
 
 
+    # enumerate options
+    # make types explicit
     parser.add_argument(
         "--cross_mod_distance", 
         metavar="DISTANCE_METRIC", 
@@ -113,23 +136,23 @@ def create_parser():
             relaaxation=infinity approaches traditional kNN",
     )
 
-    parser.add_argument(
-        "--n_cca", 
-        metavar="NUMBER_CCA", 
-        type=int,
-        default=0,
-        help="TODO",
-    )
+    # parser.add_argument(
+    #     "--n_cca", 
+    #     metavar="NUMBER_CCA", 
+    #     type=int,
+    #     default=0,
+    #     help="TODO",
+    # )
 
-    # Number of PCs
-    parser.add_argument(
-        "--n_dropped_pcs", 
-        metavar="NUM_DROPPED_PCS", 
-        type=list,
-        default=[0, 0, 0],
-        help="Specified list of Principal Components to drop for \
-                [mc, rna, atac] respectively",
-    )
+    # # Number of PCs
+    # parser.add_argument(
+    #     "--n_dropped_pcs", 
+    #     metavar="NUM_DROPPED_PCS", 
+    #     type=list,
+    #     default=[0, 0, 0],
+    #     help="Specified list of Principal Components to drop for \
+    #             [mc, rna, atac] respectively",
+    # )
    
     # Arguments for Clustering
     parser.add_argument(

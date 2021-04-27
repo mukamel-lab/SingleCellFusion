@@ -17,12 +17,13 @@ import basic_utils
 import SCF_utils
 
 # TODO:
+# -- Simplify API to take care of redundant information
+# -- Make the assumed input structures explicit (./datasets/dataset_metadata.csv)
 # -- Clean up command line argument descriptions
 # -- Figure out where to put default values
 # -- Fix __init__dataset.py rept
+
 # -- Proper error messages (replace assert() with helpful messages)
-# -- Simplify API to take care of redundant information
-# -- Make the assumed input structures explicit (./datasets/dataset_metadata.csv)
 
 log = basic_utils.create_logger()
 
