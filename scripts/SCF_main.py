@@ -33,7 +33,8 @@ def create_parser():
     parser = argparse.ArgumentParser(prog="SingleCellFusion",
                                      description="SCF is a computational tool to \
                                                   integrate single-cell transcriptome \
-                                                  and epigenome datasets")
+                                                  and epigenome datasets",
+                                    formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     
     ## ARGUMENTS DIRECTLY FED INTO SingleCellFusion CLI 
 
@@ -51,12 +52,15 @@ def create_parser():
                         required=False)
 
     parser.add_argument("-m", "--mods", metavar="MODALITY", type=str,
-                        help="Modalities inside the data directory to be integrated",
+                        help="Modalities inside the data directory to be integrated, \
+                            entered as a space seperated list of filenames.",
                         nargs="+",
                         required=True)
     
     parser.add_argument("-f", "--features", metavar="FEATURE", type=str,
-                        help="Modalities to impute into -- Features from this ",
+                        help="Modalities to impute into, entered as a space-separated \
+                            list of filenames. The features of these modalities will \
+                            be the features kept in the output imputed data table.",
                         nargs="+",
                         required=True)
     
@@ -71,11 +75,10 @@ def create_parser():
                         default=50)
 
     parser.add_argument("--ps", metavar="PS",
-                        help="Specified list of ____ for [mc, rna, atac] \
+                        help="TODO: Specified list of PS for [mc, rna, atac] \
                               data respectively",
                         default=[0.9, 0.7, 0.1])
 
-    # Measures Across Modalities
 
     parser.add_argument("--cross_mod_distance", metavar="DISTANCE_METRIC", type=str,
                         help="Distance for comparisons across modalities",
@@ -86,7 +89,13 @@ def create_parser():
                         default=20)
 
     parser.add_argument("--relaxation", metavar="RELAXATION", type=int,
-                        help="TODO",
+                        help="Relaxation specifies how much the datasets should be \
+                            assumed to be structurally similar when running SCF. \
+                            More concretely, with Relaxation = 1, when running the \
+                            nearest neighbor algorithm, each sell has a hard limit on\
+                            the number of neighbors it can have (to avoid the hub cell\
+                            problem). As Relaxation approaches infinity, this limit is\
+                            relaxed, and the algorithm approaches traditional kNN",
                         default=3)
 
     parser.add_argument("--n_cca", metavar="NUMBER_CCA", type=int,
@@ -103,12 +112,12 @@ def create_parser():
     # Arguments for Clustering
 
     parser.add_argument("-k", "--k_clusters", metavar="K_CLUSTERS", type=int,
-                        help="TODO: Number of Clusters for late clustering stage of SingleCellFusion",
+                        help="Number of Clusters for late clustering stage of SingleCellFusion",
                         default=30)
    
     parser.add_argument("--resolutions", metavar="RESOLUTIONS", type=list,
-                        help="TODO: Resolutions to be used for Leiden Clustering Algorithm. \
-                              Should be given as list of resolutions, to be iteiated through and used \
+                        help="Series of Resolutions to be used for Leiden Clustering Algorithm. \
+                              Should be given as list of resolutions, to be iterated through and used \
                               from left to right.",
                         default=[0.1, 0.2, 0.4, 0.8])
 
@@ -121,7 +130,7 @@ def create_parser():
 			default=60)
    
     parser.add_argument("--min_distance", metavar="MIN_UMAP_DISTANCE", type=float,
-                        help="TODO: Minimum Distance ___ to be used for UMAP stage of SingleCellFusion",
+                        help="TODO: Minimum Distance bused be used for UMAP stage of SingleCellFusion",
                         default=0.5)
 
     return parser
@@ -245,7 +254,6 @@ for mod in mods_selected:
     
     metas[mod] = meta
     gxc_hvftrs[mod] = gc_mat
-
     assert np.all(gxc_hvftrs[mod].cell == metas[mod].index.values) # make sure cell name is in the sanme order as metas (important if save knn mat)
     logging.info("Feature matrix {} {}".format(mod, gxc_hvftrs[mod].data.shape))
 logging.info('Done reading data')
