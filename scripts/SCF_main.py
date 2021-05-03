@@ -9,7 +9,10 @@ import itertools
 import sys
 import os
 import pickle
-import anndata
+import warnings
+with warnings.catch_warnings():
+    warnings.filterwarnings("ignore", category=FutureWarning)
+    import anndata
 import pandas
 # scripts from this package
 import cli_parser
@@ -19,10 +22,10 @@ import SCF_utils
 # TODO:
 # -- Proper error messages (replace assert() with helpful messages)
 
-log = basic_utils.create_logger()
-
 parser = cli_parser.create_parser()
 args = parser.parse_args()
+
+log = basic_utils.create_logger()
 logging.info('* Parsing Command Line Arguments')
 
 # specify output filenames
