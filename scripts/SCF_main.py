@@ -26,7 +26,7 @@ args = parser.parse_args()
 logging.info('* Parsing Command Line Arguments')
 
 # specify output filenames
-outdir = args.output
+outdir = args.output_dir
 if not os.path.isdir(outdir):
     os.makedirs(outdir)
 
@@ -39,15 +39,15 @@ output_cluster_centroids = outdir + '/{}_centroids.pkl'.format(name)
 output_figures = outdir + '/{}_{{}}.{{}}'.format(name)
 
 # get input files, modaltiies (internal rep of input files), and feature datasets
-data_files = args.inputs
-feature_files = args.features
+data_files = args.input_datasets
+feature_files = args.feature_datasets
 mods_selected = [cli_parser.parse_filename(data_file) for data_file in data_files]
 features_selected = [cli_parser.parse_filename(data_file) for data_file in feature_files]
 for features_modality in features_selected:
     assert (features_modality in mods_selected)
 
 # get dataset metadata
-mod_catgories = args.input_file_categories
+mod_catgories = args.input_modalities
 for mod_category in mod_catgories:
     assert (mod_category in ['mc', 'atac', 'rna'])
 settings = collections.OrderedDict()

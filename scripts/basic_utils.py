@@ -7,6 +7,10 @@ import os
 from scipy import sparse
 import anndata
 
+def get_size_in_GB(obj):
+    """"""
+    GB = 1024**3
+    return sys.getsizeof(obj)/GB
 
 def scf_rna_format_to_h5ad(meta, gc_mat):
     """

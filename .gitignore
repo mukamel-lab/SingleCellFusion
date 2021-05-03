@@ -1,5 +1,8 @@
 # old
+old/
 scripts/old.py
+example_wholebrainatac/old/
+example_l5pt/old/
 
 # results
 example_l5pt/results
@@ -7,6 +10,8 @@ example_wholebrainatac/results
 
 # datasets
 example_wholebrainatac/datasets
+example_wholebrainatac/datasets_pre
+example_wholebrainatac/datasets_processed
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
