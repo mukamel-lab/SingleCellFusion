@@ -2,11 +2,11 @@
 """
 
 DESCRIPTION="""
-SCF is a computational tool to integrate single-cell transcriptome and epigenome datasets. 
+SingleCellFusion is a computational tool to integrate single-cell transcriptome and epigenome datasets. 
 """
 
 DESCRIPTION_preproc="""
-SCF is a computational tool to integrate single-cell transcriptome and epigenome datasets. 
+SingleCellFusion is a computational tool to integrate single-cell transcriptome and epigenome datasets. 
 This is the CLI for its preprocessing module 
 (from count matrices to normalized HVG feature matrices).
 """
@@ -34,44 +34,47 @@ def create_parser_preproc():
         type=str,
         nargs="+",
         required=True,
-        help="(list of str) \
-              Paths to .h5ad files, each containing a cell-by-gene feature matrix, \
-              cell IDs and gene IDs. Cell IDs should be unique within each .h5ad file, \
-              Gene IDs should be shared or partially shared across files. \
-              Multiple inputs should be listed as a space seperated list of filenames. \
-             ",
+        help='''(list of str; required) 
+             Paths to .h5ad files, each containing a cell-by-gene feature matrix, 
+             cell IDs and gene IDs. Cell IDs should be unique within each .h5ad file, 
+             Gene IDs should be shared or partially shared across files. 
+             Multiple inputs should be listed as a space seperated list of filenames. 
+             '''
     )
     parser.add_argument(
         "-inorm", "--input_normalizations", 
         type=str,
         nargs="+",
         required=True,
-        help="(list of str) \
-              Data modalities chosen from 'mc', 'cpm', or 'tpm'. This should be \
-              listed in the same order as input_datasets \
-             ",
+        help='''(list of str; required) 
+             Data modalities chosen from 'mc', 'cpm', or 'tpm'. This should be 
+             listed in the same order as input_datasets 
+             ''',
     )
     parser.add_argument(
         "-o", "--output_dir", 
         type=str,
         default="./results",
-        help="(str) \
-              Directory to store output files",
+        help='''(str) 
+             Directory to store output files
+             '''
     )
     parser.add_argument(
         "-op", "--output_prefix", 
         metavar="OUT_PREFIX", 
         type=str,
         default="test_run",
-        help="(str) \
-              The output files will contain this prefix",
+        help='''(str) 
+             The output files will contain this prefix
+             '''
     )
     parser.add_argument(
         "-ga", "--gene_annotation_file", 
         type=str,
         default="",
-        help="(str) \
-              Gene annotation file (bed format: chr, start, end, gene_id, gene_name)",
+        help='''(str) 
+             Gene annotation file (bed format: chr, start, end, gene_id, gene_name)
+             '''
     )
     return parser
 
@@ -89,25 +92,27 @@ def create_parser():
     # Input/Output Dataset Settings
     parser.add_argument(
         "-i", "--input_datasets", 
+        metavar="xx.h5ad",
         type=str,
         nargs="+",
         required=True,
-        help="(list of str) \
-              Paths to .h5ad files, each containing a cell-by-gene feature matrix, \
-              cell IDs and gene IDs. Cell IDs should be unique within each .h5ad file, \
-              Gene IDs should be shared or partially shared across files. \
-              Multiple inputs should be listed as a space seperated list of filenames. \
-             ",
+        help='''(list of str; required) 
+             Paths to .h5ad files, each containing a cell-by-gene feature matrix, 
+             cell IDs and gene IDs. Cell IDs should be unique within each .h5ad file, 
+             Gene IDs should be shared or partially shared across files. 
+             Multiple inputs should be listed as a space seperated list of filenames.
+             '''
     )
     parser.add_argument(
         "-im", "--input_modalities", 
+        metavar="rna/atac/mc",
         type=str,
         nargs="+",
         required=True,
-        help="(list of str) \
-              Data modalities chosen from 'mc', 'rna', or 'atac'. This should be \
-              listed in the same order as input_datasets \
-             ",
+        help='''(list of str; required)
+             Data modalities chosen from 'rna', 'atac', or 'mc'. This should be 
+             listed in the same order as input_datasets. 
+             '''
     )
     # may need this in the future
     # parser.add_argument(
@@ -119,68 +124,74 @@ def create_parser():
 
     parser.add_argument(
         "-f", "--feature_datasets", 
+        metavar="xx.h5ad",
         type=str,
         nargs="+",
         required=True,
-        help="(list of str) \
-              Datasets whose features all datasets will impute into, \
-              entered as a space-separated list of filenames. \
-              The features of these datasets will \
-              be the features kept in the output imputed data table.",
+        help='''(list of str; required)
+             Dataset(s) whose features all other datasets will impute into.
+             Enter multiple datasets as a space-separated list of filenames.
+             The features of these datasets will
+             be the features kept in the output imputed data table.",
+             '''
     )
     parser.add_argument(
         "-o", "--output_dir", 
+        metavar="DIR",
         type=str,
         default="./results",
-        help="(str) \
-              Directory to store output files",
+        help='''(str)
+             Directory to store output files
+             '''
     )
     parser.add_argument(
         "-op", "--output_prefix", 
-        metavar="OUT_PREFIX", 
         type=str,
-        default="test_run",
-        help="(str) \
-              The output files will contain this prefix",
+        default="SingleCellFusion",
+        help='''(str)
+             The output files will contain this prefix.
+             '''
     )
 
     # within modality smoothing 
     parser.add_argument(
         "--num_pcs", 
-        metavar="PCs", 
         type=int,
         default=50,
-        help="(integer) \
-              Number of Principal Components to keep for each dataset \
-              for smoothing and for clustering/embedding after imputation",
+        help='''(integer)
+             Number of Principal Components to keep for each dataset 
+             for smoothing and for clustering/embedding after imputation.
+             '''
     )
     parser.add_argument(
         "--smoothing_fractions", 
-        metavar="SMOOTHING_FRACTIONS",
         default=[0.7, 0.1, 0.9],
-        help="(list of floats) \
-              values of 0 ~ 1, controlling the relative contribution from the cell itself vs. its neighbors. \
-              Specified list of PS for [rna, atac, mc] data respectively.",
+        help='''(list of floats) 
+             A list of three values between 0 to 1 that controls the relative contribution
+             from the cell itself vs. its neighbors in within-dataset smoothing, 
+             specified for 'rna', 'atac', 'mc' data, respectively.
+             '''
     )
 
     # constraint kNN across modalities
     parser.add_argument(
         "--nearest_neighbors", 
-        metavar="kNN", 
         type=int,
         default=20,
-        help="(integer) \
-              Number of nearest neighbors used to impute data",
+        help='''(integer)
+             Number of nearest neighbors used to impute data
+             '''
     )
     parser.add_argument(
         "--relaxation", 
         type=int,
         default=3,
-        help="(integer) \
-              Between 1 to infinity. It specifies how much the datasets should be \
-              assumed to be structurally similar. \
-              relaxation=1 enforces a hard limit that every cell receives equal number of nearest neighbors\
-              relaaxation=infinity approaches traditional kNN",
+        help='''(integer)
+             A value between 1 to infinity. It specifies how much the datasets should be
+             assumed to be structurally similar.
+             relaxation=1 enforces a hard limit that every cell receives equal number of nearest neighbors
+             relaaxation=infinity approaches traditional kNN
+             '''
     )
 
     # Arguments for Clustering
@@ -188,16 +199,20 @@ def create_parser():
         "--leiden_n_neighbors", 
         type=int,
         default=30,
-        help="(integer) \
-              Number of nearest neighbors to form in the integrated space, \
-              the resulting kNN graph is used for Leiden clustering.",
+        help='''(integer) 
+             Number of nearest neighbors to form in the integrated space, 
+             the resulting nearest neighbor graph is used for Leiden clustering.
+             It is passed into the python package leidenalg.
+             '''
     )
     parser.add_argument(
         "--leiden_resolutions", 
         type=list,
         default=[0.1, 0.2, 0.4, 0.8],
-        help="(list of floats) \
-              A list of resolutions to be used for Leiden Clustering.",
+        help='''(list of floats) 
+             A list of resolutions to be used for Leiden Clustering.
+             It is passed into the python package leidenalg.
+             '''
     )
 
     # Arguments for UMAP
@@ -205,15 +220,17 @@ def create_parser():
         "--umap_n_neighbors", 
         type=int,
 		default=60,
-        help="(integer) \
-              Number of neighbors for UMAP. It is passed into UMAP n_neighbors.",
+        help='''(integer)
+             Number of neighbors for UMAP. It is passed into the python package umap.UMAP(n_neighbors).
+             '''
     )
     parser.add_argument(
         "--umap_min_dist", 
         type=float,
         default=0.5,
-        help="(float) \
-              Minimum distance for UMAP. It is passed into UMAP min_dist.",
+        help='''(float)
+             Minimum distance for UMAP. It is passed into the python package umap.UMAP(min_dist).
+             '''
     )
     return parser
 

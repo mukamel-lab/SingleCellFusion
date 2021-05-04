@@ -1,6 +1,6 @@
 #!/bin/bash
 
-../scripts/SCF_main.py \
+../scripts/SingleCellFusion \
     -i "./datasets/10x_cells_v2.h5ad" "./datasets/snatac.h5ad" \
     -im "rna" "atac" \
     -f "./datasets/10x_cells_v2.h5ad" \
